@@ -24,8 +24,10 @@ export class DiaglogsService {
     return (
       this.dialogRepo
         .createQueryBuilder('dialog')
-        .limit(30)
+        .limit(25)
         // Первый аргумент - это отношение, которое вы хотите загрузить, а второй аргумент - это псевдоним, который вы присваиваете таблице этого отношения
+        .leftJoinAndSelect('dialog.lastMessage', 'lastMessage')
+        .leftJoinAndSelect('dialog.messages', 'message')
         .leftJoinAndSelect('dialog.creator', 'creator')
         .leftJoinAndSelect('dialog.receiver', 'receiver')
         .where('receiver.id = :id', { id: userId })
@@ -45,22 +47,28 @@ export class DiaglogsService {
           'receiverUser.lastName',
           'receiverUser.email',
         ])
+        .orderBy('dialog.updatedAt', 'DESC')
+        .addOrderBy('message.createdAt', 'ASC')
         .getMany()
     );
   }
 
   async isCreated(receiverId: number, creatorId: number) {
-    return await this.dialogRepo.findOne({
+    const dialog = await this.dialogRepo.findOne({
       where: [
         { receiverId, creatorId },
         { creatorId: receiverId, receiverId: creatorId },
       ],
+      relations: ['receiver', 'creator'],
     });
+
+    return { status: 'exist', dialog };
   }
 
   async create(dto: CreateDialogDto) {
-    if (await this.isCreated(dto.receiverId, dto.creatorId)) {
-      return 'Dialog already exist';
+    const alreadyCreated = await this.isCreated(dto.receiverId, dto.creatorId);
+    if (alreadyCreated.dialog) {
+      return alreadyCreated;
     }
 
     const receiver = await this.usersRepo.findOne({
@@ -92,16 +100,21 @@ export class DiaglogsService {
         HttpStatus.BAD_REQUEST,
       );
 
-    return await this.dialogRepo.save(dialog);
+    return { dialog: await this.dialogRepo.save(dialog), status: 'created' };
   }
 
   async getById(id: number) {
     const dialog = await this.dialogRepo.findOne({
       where: { id },
-      relations: ['creator', 'receiver'],
+      relations: ['creator', 'receiver', 'messages'],
+      order: {
+        messages: {
+          createdAt: 'ASC',
+        },
+      },
     });
-    if (!dialog) throw new NotFoundException('Dialog not found');
 
+    if (!dialog) throw new NotFoundException('Dialog not found');
     return dialog;
   }
 }

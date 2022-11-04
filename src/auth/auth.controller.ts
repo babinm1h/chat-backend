@@ -33,11 +33,6 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
-  @Post('/logout')
-  logout() {
-    return this.authService.logout();
-  }
-
   @UseGuards(JwtGuard)
   @Get('/check')
   checkAuth(@Request() req) {

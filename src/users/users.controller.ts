@@ -1,4 +1,4 @@
-import { Controller, Delete, Post, Put } from '@nestjs/common';
+import { Controller, Delete, Get, Post, Put, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -6,12 +6,17 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Put('/:id')
-  update() {
-    return this.usersService.update();
+  async update() {
+    return await this.usersService.update();
   }
 
   @Delete('/:id')
-  delete() {
-    return this.usersService.delete();
+  async delete() {
+    return await this.usersService.delete();
+  }
+
+  @Get('/search')
+  async searchUsers(@Query('searchQuery') searchQuery: string) {
+    return await this.usersService.searchUsers(searchQuery);
   }
 }

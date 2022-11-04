@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateDialogDto {
   @IsNumber()
@@ -8,8 +8,4 @@ export class CreateDialogDto {
   @IsNumber()
   @IsNotEmpty()
   receiverId: number;
-
-  @IsString()
-  @IsNotEmpty()
-  message: string;
 }

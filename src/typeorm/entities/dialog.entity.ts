@@ -19,13 +19,14 @@ export class Dialog extends Base {
   @Column('int')
   receiverId: number;
 
-  @OneToMany(() => Message, (message) => message, {
+  @OneToMany(() => Message, (message) => message.dialog, {
     cascade: ['insert', 'remove', 'update'],
+    createForeignKeyConstraints: false,
   })
   @JoinColumn()
   messages: Message[];
 
-  @OneToOne(() => Message, { createForeignKeyConstraints: true })
+  @OneToOne(() => Message, { createForeignKeyConstraints: false })
   @JoinColumn()
   lastMessage: Message;
 }

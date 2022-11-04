@@ -7,32 +7,44 @@ import {
   Get,
   Param,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { SocketEvents } from 'src/websockets/types/websocket.types';
 import { DiaglogsService } from './dialogs.service';
-import { CreateDialogDto } from './dtos/dialog.dtos';
 
 @Controller('dialogs')
 export class DialogsController {
-  constructor(private readonly dialogsService: DiaglogsService) {}
+  constructor(
+    private readonly dialogsService: DiaglogsService,
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   @UseGuards(JwtGuard)
   @Get('')
-  getAll(@Request() req) {
-    return this.dialogsService.getAll(req.user.id);
+  async getAll(@Request() req) {
+    return await this.dialogsService.getAll(req.user.id);
   }
 
   @UseGuards(JwtGuard)
   @Post('create')
-  create(
-    @Body() arg: Pick<CreateDialogDto, 'message' | 'receiverId'>,
-    @Request() req,
-  ) {
-    return this.dialogsService.create({ ...arg, creatorId: req.user.id });
+  async create(@Body('receiverId') receiverId: number, @Request() req) {
+    const dialog = await this.dialogsService.create({
+      receiverId,
+      creatorId: req.user.id,
+    });
+
+    if (dialog.status === 'created') {
+      this.eventEmitter.emit(SocketEvents.createDialog, {
+        dialog: dialog.dialog,
+      });
+    }
+
+    return dialog;
   }
 
   @UseGuards(JwtGuard)
   @Get('get/:id')
-  getById(@Param('id') id: string, @Request() req) {
-    return this.dialogsService.getById(+id);
+  async getById(@Param('id') id: string, @Request() req) {
+    return await this.dialogsService.getById(+id);
   }
 }

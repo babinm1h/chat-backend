@@ -52,4 +52,16 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
+
+  async searchUsers(searchQuery: string) {
+    return await this.UserRepo.createQueryBuilder('user')
+      .where('LOWER(user.firstName) LIKE LOWER(:searchQuery)', {
+        searchQuery: `%${searchQuery}%`,
+      })
+      .orWhere('LOWER(user.lastName) LIKE LOWER(:searchQuery)', {
+        searchQuery: `%${searchQuery}%`,
+      })
+      .select(['user.firstName', 'user.email', 'user.lastName', 'user.id'])
+      .getMany();
+  }
 }

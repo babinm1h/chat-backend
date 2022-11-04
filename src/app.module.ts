@@ -7,6 +7,7 @@ import { getTypeOrmConfig } from './config/typeorm.config';
 import { PassportModule } from '@nestjs/passport';
 import { DialogsModule } from './dialogs/dialogs.module';
 import { MessagesModule } from './messages/messages.module';
+import { WebsocketsModule } from './websockets/websockets.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MessagesModule } from './messages/messages.module';
     UsersModule,
     DialogsModule,
     MessagesModule,
+    WebsocketsModule,
   ],
   controllers: [],
   providers: [],
