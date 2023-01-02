@@ -21,36 +21,27 @@ export class DiaglogsService {
   ) {}
 
   async getAll(userId: number) {
-    return (
-      this.dialogRepo
-        .createQueryBuilder('dialog')
-        .limit(25)
-        // Первый аргумент - это отношение, которое вы хотите загрузить, а второй аргумент - это псевдоним, который вы присваиваете таблице этого отношения
-        .leftJoinAndSelect('dialog.lastMessage', 'lastMessage')
-        .leftJoinAndSelect('dialog.messages', 'message')
-        .leftJoinAndSelect('dialog.creator', 'creator')
-        .leftJoinAndSelect('dialog.receiver', 'receiver')
-        .where('receiver.id = :id', { id: userId })
-        .orWhere('creator.id = :id', { id: userId })
-        // creatorUser = dialog.creator
-        .leftJoin('dialog.creator', 'creatorUser')
-        .leftJoin('dialog.receiver', 'receiverUser')
-        .addSelect([
-          'creatorUser.id',
-          'creatorUser.firstName',
-          'creatorUser.lastName',
-          'creatorUser.email',
-        ])
-        .addSelect([
-          'receiverUser.id',
-          'receiverUser.firstName',
-          'receiverUser.lastName',
-          'receiverUser.email',
-        ])
-        .orderBy('dialog.updatedAt', 'DESC')
-        .addOrderBy('message.createdAt', 'ASC')
-        .getMany()
-    );
+    const dialogs = await this.dialogRepo.find({
+      where: [{ creatorId: userId }, { receiverId: userId }],
+      relations: [
+        'creator',
+        'receiver',
+        'messages',
+        'messages.replyToMsg',
+        'messages.creator',
+        'lastMessage',
+      ],
+      order: {
+        lastMessage: {
+          createdAt: 'DESC',
+        },
+        messages: {
+          createdAt: 'ASC',
+        },
+      },
+    });
+
+    return dialogs
   }
 
   async isCreated(receiverId: number, creatorId: number) {
@@ -106,7 +97,14 @@ export class DiaglogsService {
   async getById(id: number) {
     const dialog = await this.dialogRepo.findOne({
       where: { id },
-      relations: ['creator', 'receiver', 'messages'],
+      relations: [
+        'creator',
+        'receiver',
+        'messages',
+        'messages.replyToMsg',
+        'messages.creator',
+        "messages.attachments"
+      ],
       order: {
         messages: {
           createdAt: 'ASC',

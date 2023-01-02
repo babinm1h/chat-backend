@@ -1,6 +1,9 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, JoinColumn, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToMany } from 'typeorm';
 import { Base } from '../base';
+import { GroupDialog } from './groupDialog.entity';
+
+export type TGender = 'male' | 'female';
 
 @Entity('User')
 export class User extends Base {
@@ -16,4 +19,13 @@ export class User extends Base {
 
   @Column()
   lastName: string;
+
+  @ManyToMany(() => GroupDialog, (groupDialog) => groupDialog.users,)
+  groupDialogs: GroupDialog[];
+
+  @Column()
+  gender: TGender;
+
+  @Column()
+  country: string;
 }

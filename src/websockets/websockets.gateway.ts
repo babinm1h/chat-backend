@@ -2,7 +2,6 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
@@ -83,6 +82,14 @@ export class MessagesGateway
     const creatorSocket = this.wsSessions.getUserSocket(payload.creatorId);
     creatorSocket?.emit(SocketEvents.updateMsg, payload);
     receiverSocket?.emit(SocketEvents.updateMsg, payload);
+  }
+
+  @OnEvent(SocketEvents.readMsg)
+  handleMessageRead(
+    payload: Pick<Message, 'creatorId' | 'id'> & { receiverId: number },
+  ) {
+    const receiverSocket = this.wsSessions.getUserSocket(payload.receiverId);
+    receiverSocket?.emit(SocketEvents.readMsg, payload);
   }
 
   @SubscribeMessage(SocketEvents.userStartTyping)

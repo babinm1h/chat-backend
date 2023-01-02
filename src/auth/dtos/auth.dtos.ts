@@ -1,4 +1,11 @@
-import { IsNotEmpty, MaxLength, IsEmail, MinLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  MaxLength,
+  IsEmail,
+  MinLength,
+  IsString,
+} from 'class-validator';
+import { TGender } from 'src/typeorm/entities/user.entity';
 
 export class CreateUserDto {
   @IsEmail()
@@ -15,6 +22,14 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   readonly lastName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  readonly country: string;
+
+  @IsNotEmpty()
+  @IsString()
+  readonly gender: TGender;
 }
 
 export class LoginDto implements Pick<CreateUserDto, 'email' | 'password'> {

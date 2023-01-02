@@ -1,7 +1,9 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { Dialog } from 'src/typeorm/entities/dialog.entity';
+import { GroupDialog } from 'src/typeorm/entities/groupDialog.entity';
 import { Message } from 'src/typeorm/entities/message.entity';
+import { MessageAttachment } from 'src/typeorm/entities/messageAttachments.entity';
 import { User } from 'src/typeorm/entities/user.entity';
 
 export const getTypeOrmConfig = async (
@@ -15,5 +17,5 @@ export const getTypeOrmConfig = async (
   password: cfg.get('DB_PASSWORD'),
   username: cfg.get('DB_USERNAME'),
   database: cfg.get('DB_NAME'),
-  entities: [User, Dialog, Message],
+  entities: [User, Dialog, Message, GroupDialog, MessageAttachment],
 });

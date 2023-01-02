@@ -27,16 +27,20 @@ export class UsersService {
     const newUser = await this.UserRepo.create({
       ...dto,
       password: hashedPass,
+      groupDialogs: [],
     });
 
     const user = await this.UserRepo.save(newUser);
-
     return user;
   }
 
-  async update() {}
+  async update() {
+    return;
+  }
 
-  async delete() {}
+  async delete() {
+    return;
+  }
 
   async findById(id: number) {
     const user = await this.UserRepo.findOneBy({ id });
@@ -53,8 +57,8 @@ export class UsersService {
     return user;
   }
 
-  async searchUsers(searchQuery: string) {
-    return await this.UserRepo.createQueryBuilder('user')
+  async searchUsers(searchQuery: string, authId: number) {
+    const found = await this.UserRepo.createQueryBuilder('user')
       .where('LOWER(user.firstName) LIKE LOWER(:searchQuery)', {
         searchQuery: `%${searchQuery}%`,
       })
@@ -63,5 +67,7 @@ export class UsersService {
       })
       .select(['user.firstName', 'user.email', 'user.lastName', 'user.id'])
       .getMany();
+
+    return found.filter((user) => user.id !== authId);
   }
 }

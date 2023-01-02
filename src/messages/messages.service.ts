@@ -5,8 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { instanceToPlain } from 'class-transformer';
+import { MediaService } from 'src/media/media.service';
+import { MessageAttachmentsService } from 'src/messageAttachments/messageAttachments.service';
 import { Dialog } from 'src/typeorm/entities/dialog.entity';
 import { Message } from 'src/typeorm/entities/message.entity';
+import { MessageAttachment } from 'src/typeorm/entities/messageAttachments.entity';
 import { User } from 'src/typeorm/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateMessageDto } from './dtos/messages.dtos';
@@ -17,9 +20,19 @@ export class MessagesService {
     @InjectRepository(Message)
     private readonly messagesRepo: Repository<Message>,
     @InjectRepository(Dialog) private readonly dialogsRepo: Repository<Dialog>,
+    @InjectRepository(MessageAttachment)
+    private readonly MessageAttachmentRepo: Repository<MessageAttachment>,
+    private mediaService: MediaService,
+    private messageAttachmentService: MessageAttachmentsService,
   ) {}
 
-  async create({ dialogId, text }: CreateMessageDto, creator: User) {
+  async create({
+    dialogId,
+    text,
+    replyToMsgId,
+    creator,
+    files,
+  }: CreateMessageDto) {
     const dialog = await this.dialogsRepo.findOne({
       where: { id: dialogId },
     });
@@ -33,8 +46,24 @@ export class MessagesService {
       dialogId,
       text,
       dialog,
+      attachments: files?.length
+        ? await Promise.all(
+            files.map((f) => this.messageAttachmentService.create(f)),
+          )
+        : [],
     });
 
+    if (replyToMsgId) {
+      const replyMsg = await this.messagesRepo.findOne({
+        where: { id: replyToMsgId },
+      });
+
+      if (!replyMsg)
+        throw new NotFoundException('Cant reply to not existed message');
+
+      newMsg.replyToMsgId === replyToMsgId;
+      newMsg.replyToMsg = replyMsg;
+    }
     const savedMsg = await this.messagesRepo.save(newMsg);
 
     dialog.lastMessage = savedMsg;
@@ -105,6 +134,29 @@ export class MessagesService {
     await this.messagesRepo.save(msg);
     return {
       ...msg,
+      receiverId:
+        user.id === dialog.receiverId ? dialog.creatorId : dialog.receiverId,
+    };
+  }
+
+  async readMessage(user: User, messageId: number) {
+    const msg = await this.messagesRepo.findOne({ where: { id: messageId } });
+    if (!msg) throw new NotFoundException('Message not found');
+    if (msg.creatorId == user.id) {
+      return;
+    }
+
+    const dialog = await this.dialogsRepo.findOne({
+      where: { id: msg.dialogId },
+    });
+
+    msg.readed = true;
+    await this.messagesRepo.save(msg);
+
+    return {
+      creator: msg.creatorId,
+      id: msg.id,
+      dialogId: msg.dialogId,
       receiverId:
         user.id === dialog.receiverId ? dialog.creatorId : dialog.receiverId,
     };

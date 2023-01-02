@@ -5,6 +5,7 @@ export enum SocketEvents {
   deleteMsg = 'message:delete',
   receiveMsg = 'message:receive',
   updateMsg = 'message:update',
+  readMsg = 'message:read',
 
   userStartTyping = 'user:startTyping',
   userStopTyping = 'user:stopTyping',
