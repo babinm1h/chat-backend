@@ -115,6 +115,12 @@ export class MessagesGateway
     console.log('joined to ' + payload.dialogId);
   }
 
+  @SubscribeMessage(SocketEvents.leaveRoom)
+  handleLeaveDialog(socket: IAuthSocket, payload: { dialogId: string }) {
+    socket.leave(`dialog-${payload.dialogId}`);
+    console.log('leaved from ' + payload.dialogId);
+  }
+
   @OnEvent(SocketEvents.createDialog)
   handleCreateDialog(payload: { dialog: Dialog }) {
     const receiverSocket = this.wsSessions.getUserSocket(

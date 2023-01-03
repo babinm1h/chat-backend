@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getJwtConfig } from 'src/config/jwt.config';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { MediaService } from 'src/media/media.service';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     JwtStrategy,
     LocalStrategy,
     ConfigService,
+    MediaService,
   ],
 })
 export class AuthModule {}

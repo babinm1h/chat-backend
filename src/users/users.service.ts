@@ -8,11 +8,14 @@ import { User } from 'src/typeorm/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserDto } from '../auth/dtos/auth.dtos';
+import { UpdateUserDto } from './dtos/users.dtos';
+import { MediaService } from 'src/media/media.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly UserRepo: Repository<User>,
+    private mediaService: MediaService,
   ) {}
 
   async create(dto: CreateUserDto) {
@@ -34,8 +37,16 @@ export class UsersService {
     return user;
   }
 
-  async update() {
-    return;
+  async update(userId: number, { avatar, ...dto }: UpdateUserDto) {
+    const user = await this.UserRepo.findOneBy({ id: userId });
+    if (!user) throw new BadRequestException('User not found');
+
+    if (avatar) {
+      const avaUrl = await this.mediaService.image(avatar);
+      return await this.UserRepo.save({ ...user, ...dto, avatar: avaUrl });
+    }
+
+    return await this.UserRepo.save({ ...user, ...dto });
   }
 
   async delete() {

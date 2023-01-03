@@ -20,7 +20,7 @@ export class User extends Base {
   @Column()
   lastName: string;
 
-  @ManyToMany(() => GroupDialog, (groupDialog) => groupDialog.users,)
+  @ManyToMany(() => GroupDialog, (groupDialog) => groupDialog.users)
   groupDialogs: GroupDialog[];
 
   @Column()
@@ -28,4 +28,10 @@ export class User extends Base {
 
   @Column()
   country: string;
+
+  @Column({ default: '' })
+  status: string;
+
+  @Column({ nullable: true })
+  avatar: string;
 }
