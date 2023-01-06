@@ -21,6 +21,7 @@ export class MessageAttachmentsService {
         this.messagesAttachmentRepo.create({
           type: FileTypes.image,
           path: await this.mediaService.image(f),
+          name: f.originalname,
         }),
       );
     } else if (f.mimetype.includes('video')) {
@@ -28,6 +29,7 @@ export class MessageAttachmentsService {
         this.messagesAttachmentRepo.create({
           type: FileTypes.video,
           path: await this.mediaService.video(f),
+          name: f.originalname,
         }),
       );
     } else if (f.mimetype.includes('audio')) {
@@ -35,6 +37,7 @@ export class MessageAttachmentsService {
         this.messagesAttachmentRepo.create({
           type: FileTypes.audio,
           path: await this.mediaService.audio(f),
+          name: f.originalname,
         }),
       );
     } else {
@@ -42,6 +45,7 @@ export class MessageAttachmentsService {
         this.messagesAttachmentRepo.create({
           type: FileTypes.file,
           path: await this.mediaService.file(f),
+          name: f.originalname,
         }),
       );
     }

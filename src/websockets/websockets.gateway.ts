@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { MessagesService } from 'src/messages/messages.service';
 import { Dialog } from 'src/typeorm/entities/dialog.entity';
+import { FriendRequest } from 'src/typeorm/entities/friendRequest.entity';
 import { Message } from 'src/typeorm/entities/message.entity';
 import { User } from 'src/typeorm/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
@@ -27,7 +28,7 @@ import { IAuthSocket, SocketEvents } from './types/websocket.types';
     ],
     credentials: true,
   },
-  pingInterval: 10000,
+  pingInterval: 15000,
   pingTimeout: 15000,
 })
 export class MessagesGateway
@@ -55,17 +56,20 @@ export class MessagesGateway
     console.log(socket.id + ' disconnect');
   }
 
-  // @SubscribeMessage('createMessage')
-  // handleCreateMessage(@MessageBody() data: any) {
-  //   console.log(data, 'create777');
-  // }
-
   @OnEvent(SocketEvents.createMsg)
   handleMessageCreate(payload: Message & { receiverId: number }) {
     const receiverSocket = this.wsSessions.getUserSocket(payload.receiverId);
-    const creatorSocket = this.wsSessions.getUserSocket(payload.creatorId);
-    creatorSocket?.emit(SocketEvents.receiveMsg, payload);
+    // const creatorSocket = this.wsSessions.getUserSocket(payload.creatorId);
+    // creatorSocket?.emit(SocketEvents.receiveMsg, payload);
     receiverSocket?.emit(SocketEvents.receiveMsg, payload);
+  }
+
+  @OnEvent(SocketEvents.createFriendReq)
+  handleFriendReqCreate(payload: FriendRequest) {
+    const receiverSocket = this.wsSessions.getUserSocket(payload.receiver.id);
+    // const creatorSocket = this.wsSessions.getUserSocket(payload.sender.id);
+    // creatorSocket?.emit(SocketEvents.receiveFriendReq, payload);
+    receiverSocket?.emit(SocketEvents.receiveFriendReq, payload);
   }
 
   @OnEvent(SocketEvents.deleteMsg)

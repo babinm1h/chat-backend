@@ -41,7 +41,13 @@ export class DiaglogsService {
       },
     });
 
-    return dialogs
+    // const unreadedCount = dialogs
+    //   .map((d) =>
+    //     d.messages.filter((msg) => !msg?.readed && msg?.creatorId !== userId),
+    //   )
+    //   .flat(1).length;
+
+    return dialogs;
   }
 
   async isCreated(receiverId: number, creatorId: number) {
@@ -103,7 +109,7 @@ export class DiaglogsService {
         'messages',
         'messages.replyToMsg',
         'messages.creator',
-        "messages.attachments"
+        'messages.attachments',
       ],
       order: {
         messages: {

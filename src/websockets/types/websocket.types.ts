@@ -17,6 +17,9 @@ export enum SocketEvents {
   deleteDialog = 'dialog:delete',
 
   disconnect = 'disconnect',
+
+  createFriendReq = 'createFriendReq',
+  receiveFriendReq = 'receiveFriendReq',
 }
 
 export interface IAuthSocket extends Socket {

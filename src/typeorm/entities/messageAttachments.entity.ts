@@ -30,4 +30,7 @@ export class MessageAttachment {
 
   @Column()
   path: string;
+
+  @Column({ nullable: true })
+  name: string;
 }

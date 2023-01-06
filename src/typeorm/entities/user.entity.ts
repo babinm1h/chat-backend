@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, ManyToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, OneToMany } from 'typeorm';
 import { Base } from '../base';
 import { GroupDialog } from './groupDialog.entity';
 
@@ -34,4 +34,7 @@ export class User extends Base {
 
   @Column({ nullable: true })
   avatar: string;
+
+  @Column({ nullable: true ,default:0})
+  friendRequestsCount: number
 }

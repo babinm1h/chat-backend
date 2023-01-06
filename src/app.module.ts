@@ -12,6 +12,7 @@ import { MediaModule } from './media/media.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { MessageAttachmentsModule } from './messageAttachments/messageAttachments.module';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MessageAttachmentsModule } from './messageAttachments/messageAttachment
     GroupDialogsModule,
     MediaModule,
     MessageAttachmentsModule,
+    FriendsModule,
     MulterModule.register({
       storage: memoryStorage(),
     }),
