@@ -24,6 +24,7 @@ import { IAuthSocket, SocketEvents } from './types/websocket.types';
       process.env.CLIENT_URL,
       'http://localhost:3000',
       'http://localhost:3001',
+      'https://splendorous-chimera-c8edc6.netlify.app',
     ],
     credentials: true,
   },
@@ -166,7 +167,12 @@ export class MessagesGateway
     { callerId }: { callerId: number; dialogId: number },
   ) {
     const { id } = this.decodeJwt(socket.chatToken);
-    const caller = await this.userService.findById(callerId, ['id', 'firstName', 'lastName', 'avatar']);
+    const caller = await this.userService.findById(callerId, [
+      'id',
+      'firstName',
+      'lastName',
+      'avatar',
+    ]);
 
     const receiverSocket = this.wsSessions.getUserSocket(id);
     const callerSocket = this.wsSessions.getUserSocket(callerId);
@@ -191,7 +197,12 @@ export class MessagesGateway
     { callerId }: { callerId: number },
   ) {
     const { id } = this.decodeJwt(socket.chatToken);
-    const caller = await this.userService.findById(callerId, ['id', 'firstName', 'lastName', 'avatar']);
+    const caller = await this.userService.findById(callerId, [
+      'id',
+      'firstName',
+      'lastName',
+      'avatar',
+    ]);
 
     const receiverSocket = this.wsSessions.getUserSocket(id);
     const callerSocket = this.wsSessions.getUserSocket(callerId);
