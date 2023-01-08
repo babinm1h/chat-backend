@@ -20,6 +20,11 @@ export enum SocketEvents {
 
   createFriendReq = 'createFriendReq',
   receiveFriendReq = 'receiveFriendReq',
+
+  onVideoCallInit = 'onVideoCallInit',
+  videoCallAccept = 'VideoCallAccept',
+  videoCallReject = 'VideoCallReject',
+  videoCallHangup = 'VideoCallHangup',
 }
 
 export interface IAuthSocket extends Socket {

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/typeorm/entities/user.entity';
-import { Repository } from 'typeorm';
+import {  FindOptionsSelectByString, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserDto } from '../auth/dtos/auth.dtos';
 import { UpdateUserDto } from './dtos/users.dtos';
@@ -53,8 +53,20 @@ export class UsersService {
     return;
   }
 
-  async findById(id: number) {
-    const user = await this.UserRepo.findOneBy({ id });
+  async findById(id: number, select?: FindOptionsSelectByString<User>) {
+    if (select) {
+      const user = await this.UserRepo.findOne({
+        where: { id },
+        select: select,
+      });
+
+      if (!user) throw new NotFoundException('User not found');
+      return user;
+    }
+    const user = await this.UserRepo.findOne({
+      where: { id },
+    });
+
     if (!user) throw new NotFoundException('User not found');
     return user;
   }

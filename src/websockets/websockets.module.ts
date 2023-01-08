@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DiaglogsService } from 'src/dialogs/dialogs.service';
 import { MediaService } from 'src/media/media.service';
 import { MessageAttachmentsService } from 'src/messageAttachments/messageAttachments.service';
 import { MessagesService } from 'src/messages/messages.service';
@@ -29,6 +30,7 @@ import { MessagesGateway } from './websockets.gateway';
     GatewaySessions,
     MediaService,
     MessageAttachmentsService,
+    DiaglogsService,
   ],
   controllers: [],
 })

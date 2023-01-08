@@ -1,6 +1,6 @@
+import { BadRequestException } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -9,13 +9,12 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { DiaglogsService } from 'src/dialogs/dialogs.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { Dialog } from 'src/typeorm/entities/dialog.entity';
 import { FriendRequest } from 'src/typeorm/entities/friendRequest.entity';
 import { Message } from 'src/typeorm/entities/message.entity';
-import { User } from 'src/typeorm/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
-import { Repository } from 'typeorm';
 import { GatewaySessions } from './gateway.sessions';
 import { IAuthSocket, SocketEvents } from './types/websocket.types';
 
@@ -39,16 +38,19 @@ export class MessagesGateway
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
     private readonly wsSessions: GatewaySessions,
-    @InjectRepository(User) private readonly usersRepo: Repository<User>,
+    private readonly dialogsService: DiaglogsService,
   ) {}
 
   @WebSocketServer()
   server: Server;
 
-  handleConnection(socket: IAuthSocket) {
-    const { id } = this.jwtService.decode(socket.chatToken) as { id: number };
-    this.wsSessions.setUserSocket(id, socket);
+  decodeJwt(jwt: string) {
+    return this.jwtService.decode(jwt) as { id: number };
+  }
 
+  handleConnection(socket: IAuthSocket) {
+    const { id } = this.decodeJwt(socket.chatToken);
+    this.wsSessions.setUserSocket(id, socket);
     console.log(this.wsSessions.getSessions().keys());
   }
 
@@ -136,5 +138,84 @@ export class MessagesGateway
         dialog: payload.dialog,
       });
     }
+  }
+
+  @SubscribeMessage(SocketEvents.onVideoCallInit)
+  async handleOnVideoCall(
+    socket: IAuthSocket,
+    { receiverId }: { receiverId: number },
+  ) {
+    const { id } = this.decodeJwt(socket.chatToken);
+    const caller = await this.userService.findById(id, [
+      'id',
+      'firstName',
+      'lastName',
+      'avatar',
+    ]);
+
+    if (caller.id === +receiverId) {
+      throw new BadRequestException('You cant call yourself!');
+    }
+    const receiverSocket = this.wsSessions.getUserSocket(receiverId);
+    receiverSocket?.emit(SocketEvents.onVideoCallInit, { caller });
+  }
+
+  @SubscribeMessage(SocketEvents.videoCallAccept)
+  async handleVideoCallAccept(
+    socket: IAuthSocket,
+    { callerId }: { callerId: number; dialogId: number },
+  ) {
+    const { id } = this.decodeJwt(socket.chatToken);
+    const caller = await this.userService.findById(callerId, ['id', 'firstName', 'lastName', 'avatar']);
+
+    const receiverSocket = this.wsSessions.getUserSocket(id);
+    const callerSocket = this.wsSessions.getUserSocket(callerId);
+    const dialog = await this.dialogsService.isCreated(id, callerId);
+
+    receiverSocket?.emit(SocketEvents.videoCallAccept, {
+      callerId: caller.id,
+      receiverId: id,
+      dialogId: dialog?.dialog?.id,
+    });
+
+    callerSocket?.emit(SocketEvents.videoCallAccept, {
+      callerId: caller.id,
+      receiverId: id,
+      dialogId: dialog?.dialog?.id,
+    });
+  }
+
+  @SubscribeMessage(SocketEvents.videoCallReject)
+  async handleVideoCallReject(
+    socket: IAuthSocket,
+    { callerId }: { callerId: number },
+  ) {
+    const { id } = this.decodeJwt(socket.chatToken);
+    const caller = await this.userService.findById(callerId, ['id', 'firstName', 'lastName', 'avatar']);
+
+    const receiverSocket = this.wsSessions.getUserSocket(id);
+    const callerSocket = this.wsSessions.getUserSocket(callerId);
+
+    receiverSocket?.emit(SocketEvents.videoCallReject, {
+      caller,
+      receiverId: id,
+    });
+
+    callerSocket?.emit(SocketEvents.videoCallReject, {
+      caller,
+      receiverId: id,
+    });
+  }
+
+  @SubscribeMessage(SocketEvents.videoCallHangup)
+  async handleVideoCallHangup(
+    socket: IAuthSocket,
+    { callerId, receiverId }: { callerId: number; receiverId: number },
+  ) {
+    // const caller = await this.userService.findById(callerId);
+    const receiverSocket = this.wsSessions.getUserSocket(receiverId);
+    const callerSocket = this.wsSessions.getUserSocket(callerId);
+    receiverSocket?.emit(SocketEvents.videoCallHangup);
+    callerSocket?.emit(SocketEvents.videoCallHangup);
   }
 }
