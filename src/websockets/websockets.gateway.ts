@@ -29,7 +29,6 @@ import { IAuthSocket, SocketEvents } from './types/websocket.types';
     credentials: true,
   },
   pingInterval: 15000,
-  transports: ['websocket'],
   pingTimeout: 15000,
 })
 export class MessagesGateway
